@@ -1,7 +1,6 @@
 const db = require('../models');
 const Category = db.Category;
 
-// Create new category
 async function createCategory(name, description) {
     try {
         if (!name) {
@@ -20,7 +19,6 @@ async function createCategory(name, description) {
     }
 }
 
-// Get all categories
 async function getAllCategories() {
     try {
         const categories = await Category.findAll({
@@ -35,7 +33,6 @@ async function getAllCategories() {
     }
 }
 
-// Get category by ID
 async function getCategoryById(id) {
     try {
         const category = await Category.findByPk(id, {
@@ -55,7 +52,6 @@ async function getCategoryById(id) {
     }
 }
 
-// Update category
 async function updateCategory(id, name, description) {
     try {
         const category = await Category.findByPk(id);
@@ -77,7 +73,6 @@ async function updateCategory(id, name, description) {
     }
 }
 
-// Delete category
 async function deleteCategory(id) {
     try {
         const category = await Category.findByPk(id);
@@ -85,7 +80,6 @@ async function deleteCategory(id) {
             throw new Error("Category not found");
         }
 
-        // Check if category has associated menus
         const menuCount = await db.Menu.count({ where: { category_id: id } });
         if (menuCount > 0) {
             throw new Error("Cannot delete category with existing menu items");

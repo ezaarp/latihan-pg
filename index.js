@@ -5,6 +5,7 @@ const db = require('./models');
 const app = express();
 
 // Import all routes
+const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const categoryRoutes = require('./routes/category');
 const menuRoutes = require('./routes/menu');
@@ -12,25 +13,30 @@ const tableRoutes = require('./routes/table');
 const orderRoutes = require('./routes/order');
 
 require('dotenv').config();
-// 3. Mendefinisikan port untuk server
-// Menggunakan port dari environment variable jika ada, jika tidak, gunakan port 3000
 const port = process.env.PORT || 3000;
 
+// 🔧 Fix: Improved DB connection with timeout
 async function testDbConnection() {
     try {
-    await db.sequelize.authenticate();
-    console.log('Koneksi ke database berhasil terkoneksi.');
+        console.log('Testing database connection...');
+        await Promise.race([
+            db.sequelize.authenticate(),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+            )
+        ]);
+        console.log('✅ Database connected successfully');
     } catch (error) {
-    console.error('Tidak dapat terhubung ke database:', error);
+        console.error('❌ Database connection failed:', error.message);
+        console.log('⚠️  Server will continue without database');
     }
 }
-
-testDbConnection();
 
 // 4. Middleware untuk parsing JSON
 app.use(express.json());
 
-// 5. Mendefinisikan semua API routes
+// 5. API routes
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/menus', menuRoutes);
@@ -42,6 +48,7 @@ app.get('/', (req, res) => {
     res.json({
         message: 'Welcome to Restaurant API',
         endpoints: {
+            auth: '/api/auth',
             users: '/api/users',
             categories: '/api/categories',
             menus: '/api/menus',
@@ -51,7 +58,8 @@ app.get('/', (req, res) => {
     });
 });
 
-// 7. Menjalankan server dan mendengarkan koneksi pada port yang ditentukan
+// 7. Start server FIRST, then test DB
 app.listen(port, () => {
-console.log(`Server berjalan di http://localhost:${port}`);
+    console.log(`🚀 Server running at http://localhost:${port}`);
+    testDbConnection(); // Test DB after server starts
 });

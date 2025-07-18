@@ -3,8 +3,9 @@ const orderService = require('../services/order');
 // Create new order
 const createOrderController = async (req, res) => {
     try {
-        const { user_id, table_id, total_amount, status, order_date } = req.body;
-        const newOrder = await orderService.createOrder(user_id, table_id, total_amount, status, order_date);
+        const { user_id, table_id, status, order_date, items } = req.body;
+        // items adalah array yang beris [{ menu_id, quantity, price }]
+        const newOrder = await orderService.createOrder(user_id, table_id, status, order_date, items);
         res.status(201).json(newOrder);
     } catch (error) {
         console.error('Error creating order:', error);
@@ -60,10 +61,30 @@ const deleteOrderController = async (req, res) => {
     }
 }
 
+// Get my orders
+const getMyOrdersController = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        console.log('User ID from req.user:', userId);
+        
+        const orders = await orderService.getOrdersByUserId(userId);
+        res.status(200).json({
+            status: "ok",
+            statusCode: 200,
+            message: "Data order berhasil diambil",
+            data: orders,
+        });
+    } catch (error) {
+        console.error('Error getting my orders:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+
 module.exports = { 
     createOrderController, 
     getAllOrdersController,
     getOrderByIdController, 
     updateOrderController, 
-    deleteOrderController 
+    deleteOrderController,
+    getMyOrdersController
 }; 

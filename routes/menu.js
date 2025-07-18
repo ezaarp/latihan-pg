@@ -1,15 +1,40 @@
 const express = require('express');
 const menuController = require('../controllers/menu');
+const { authenticateToken } = require('../middleware/auth.middleware');
+const { authorize } = require('../middleware/rbac.middleware');
 const router = express.Router();
 
-router.post('/', menuController.createMenuController);
+// POST /api/menus - Create menu (Admin only)
+router.post('/', 
+  authenticateToken, 
+  authorize(['admin']), 
+  menuController.createMenuController
+);
 
-router.get('/', menuController.getAllMenusController);
+// GET /api/menus - Get all menus (accessible to all authenticated users)
+router.get('/', 
+  authenticateToken, 
+  menuController.getAllMenusController
+);
 
-router.get('/:id', menuController.getMenuByIdController);
+// GET /api/menus/:id - Get menu by ID (accessible to all authenticated users)
+router.get('/:id', 
+  authenticateToken, 
+  menuController.getMenuByIdController
+);
 
-router.put('/:id', menuController.updateMenuController);
+// PUT /api/menus/:id - Update menu (Admin only)
+router.put('/:id', 
+  authenticateToken, 
+  authorize(['admin']), 
+  menuController.updateMenuController
+);
 
-router.delete('/:id', menuController.deleteMenuController);
+// DELETE /api/menus/:id - Delete menu (Admin only)
+router.delete('/:id', 
+  authenticateToken, 
+  authorize(['admin']), 
+  menuController.deleteMenuController
+);
 
 module.exports = router; 

@@ -1,15 +1,49 @@
 const express = require('express');
 const userController = require('../controllers/user');
+const { validate, validateParams } = require('../middleware/validation');
+const { authenticateToken } = require('../middleware/auth.middleware');
+const { authorize } = require('../middleware/rbac.middleware');
+const { createUserSchema, updateUserSchema, getUserByIdSchema } = require('../schemas');
 const router = express.Router();
 
-router.post('/', userController.createUserController);
+// POST /api/users - Create new user (Admin only)
+router.post('/', 
+  authenticateToken, 
+  authorize(['admin']), 
+  validate(createUserSchema), 
+  userController.create
+);
 
-router.get('/', userController.getAllUsersController);
+// GET /api/users - Get all users (Admin only)
+router.get('/', 
+  authenticateToken, 
+  authorize(['admin']), 
+  userController.getAllUsersController
+);
 
-router.get('/:id', userController.getUserByIdController);
+// GET /api/users/:id - Get user by ID (Admin only)
+router.get('/:id', 
+  authenticateToken, 
+  authorize(['admin']), 
+  validateParams(getUserByIdSchema), 
+  userController.getUserByIdController
+);
 
-router.put('/:id', userController.updateUserController);
+// PUT /api/users/:id - Update user (Admin only)
+router.put('/:id', 
+  authenticateToken, 
+  authorize(['admin']), 
+  validateParams(getUserByIdSchema), 
+  validate(updateUserSchema), 
+  userController.updateUserController
+);
 
-router.delete('/:id', userController.deleteUserController);
+// DELETE /api/users/:id - Delete user (Admin only)
+router.delete('/:id', 
+  authenticateToken, 
+  authorize(['admin']), 
+  validateParams(getUserByIdSchema), 
+  userController.deleteUserController
+);
 
 module.exports = router;
